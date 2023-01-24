@@ -1,5 +1,5 @@
 {
-  "name": "@craftjs-type/java.base",
+  "name": "@craftjs-typings/java.base",
   "version": "VERSION",
   "description": "Java standard library (java.base) types",
   "repository": {

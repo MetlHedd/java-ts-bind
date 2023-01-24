@@ -1,5 +1,5 @@
 {
-  "name": "@craftjs-type/java.net.http",
+  "name": "@craftjs-typings/java.net.http",
   "version": "VERSION",
   "description": "Java 11 HttpClient (java.net.http) types",
   "repository": {
