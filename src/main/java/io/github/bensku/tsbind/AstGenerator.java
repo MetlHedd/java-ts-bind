@@ -34,6 +34,8 @@ import com.github.javaparser.resolution.declarations.ResolvedParameterDeclaratio
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
+import com.github.javaparser.resolution.types.ResolvedType;
+import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserFieldDeclaration;
 
 import io.github.bensku.tsbind.ast.AstNode;
 import io.github.bensku.tsbind.ast.Constructor;
@@ -73,8 +75,9 @@ public class AstGenerator {
 	 */
 	public Optional<TypeDefinition> parseType(SourceUnit source) {
 		// FIXME don't log errors here, CLI might not be only user in future
-		
-		ParseResult<CompilationUnit> result = parser.parse(source.code);
+		// JAVAPARSER DOESNT SUPPORT sealed CLASSES! Very spaghetti solution but works
+		String code = source.code.replaceAll("sealed ", "").replaceAll("record", "class");
+		ParseResult<CompilationUnit> result = parser.parse(code);
 		if (!result.isSuccessful()) {
 			//throw new IllegalArgumentException("failed to parse given source code: " + result.getProblems());
 			System.err.println("failed to parse " + source.name + ": " + result.getProblems());
@@ -302,7 +305,7 @@ public class AstGenerator {
 	private PublicFilterResult filterPublicTypes(List<ClassOrInterfaceType> types) {
 		PublicFilterResult result = new PublicFilterResult();
 		for (ClassOrInterfaceType type : types) {
-			ResolvedReferenceType resolved = type.resolve();
+			ResolvedReferenceType resolved = type.resolve().asReferenceType();
 			if (isPublic(resolved.getTypeDeclaration().orElse(null))) {
 				result.publicTypes.add(resolved);
 			} else {
@@ -337,13 +340,13 @@ public class AstGenerator {
 	private boolean isPublic(TypeDeclaration<?> type, BodyDeclaration<?> member) {
 		// JPMS is ignored for now, would need to parse module infos for that
 		AccessSpecifier access = (member instanceof NodeWithModifiers<?>)
-				? ((NodeWithModifiers<?>) member).getAccessSpecifier() : AccessSpecifier.PACKAGE_PRIVATE;
+				? ((NodeWithModifiers<?>) member).getAccessSpecifier() : AccessSpecifier.PRIVATE;
 		// Members specified as public are ALWAYS public
 		if (access == AccessSpecifier.PUBLIC) {
 			return true;
 		}
 		// Default ("package private") access in interfaces is public
-		if (access == AccessSpecifier.PACKAGE_PRIVATE && type.isClassOrInterfaceDeclaration()) {
+		if (access == AccessSpecifier.PRIVATE && type.isClassOrInterfaceDeclaration()) {
 			return type.asClassOrInterfaceDeclaration().isInterface();
 		}
 		// Enum constants are handled separately, JavaParser doesn't consider them members
@@ -438,7 +441,13 @@ public class AstGenerator {
 	}
 	
 	private void processFieldValue(Consumer<Member> addMember, FieldProps props) {
-		TypeRef type = TypeRef.fromType(props.value.getType(), props.nullable);
+		TypeRef type = null;
+		if (props.value instanceof JavaParserFieldDeclaration) {
+			JavaParserFieldDeclaration dec = (JavaParserFieldDeclaration) props.value;
+			type = TypeRef.fromType(dec.getVariableDeclarator().getType().resolve(), props.nullable);
+		} else {
+			type = TypeRef.fromType(props.value.getType(), props.nullable);
+		}
 		// Add normal field to AST
 		addMember.accept(new Field(props.value.getName(), type, props.javadoc,
 				props.isPublic, props.isStatic, props.isFinal));

@@ -177,7 +177,7 @@ public class BindGenApp {
 		
 		JavaSymbolSolver symbolSolver = new JavaSymbolSolver(typeSolver);
 		ParserConfiguration config = new ParserConfiguration();
-		config.setLanguageLevel(LanguageLevel.JAVA_16);
+		config.setLanguageLevel(LanguageLevel.JAVA_17_PREVIEW);
 		JavaParser parser = new JavaParser(config);
 		parser.getParserConfiguration().setSymbolResolver(symbolSolver);
 		return parser;

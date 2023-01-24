@@ -8,11 +8,11 @@ repositories {
 }
 
 compileJava {
-    options.release = 16
+    options.release = 17
 }
 
 dependencies {
-    implementation 'com.github.javaparser:javaparser-symbol-solver-core:3.22.1'
+    implementation 'com.github.javaparser:javaparser-symbol-solver-core:3.24.10'
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'com.beust:jcommander:1.81'
     implementation 'org.jsoup:jsoup:1.13.1'
