@@ -171,7 +171,7 @@ public class AstGenerator {
 			// Work as if other non-public members did not exist
 			return; // Neither implicitly or explicitly public
 		}
-		
+
 		// Process type depending on what it is
 		if (member.isTypeDeclaration()) {
 			// Recursively process an inner type
@@ -201,7 +201,7 @@ public class AstGenerator {
 				members.add(member);
 			}
 		};
-		
+
 		// If this is an enum, generate enum constants and compiler-generated methods
 		// JavaParser doesn't consider enum constants "members"
 		if (type.isEnumDeclaration()) {
@@ -293,6 +293,7 @@ public class AstGenerator {
 		
 		// Create type definition
 		String javadoc = getJavadoc(type);
+
 		return Optional.of(new TypeDefinition(javadoc, type.isStatic(), typeRef, typeKind, isAbstract,
 				superTypes, interfaces, members));
 	}
@@ -345,12 +346,15 @@ public class AstGenerator {
 		if (access == AccessSpecifier.PUBLIC) {
 			return true;
 		}
+		// In new Javaparser versions it seems that in interfaces it can happen that the access can be NONE
+		if (access == AccessSpecifier.NONE) {
+			access = AccessSpecifier.PRIVATE;
+		}
 		// Default ("package private") access in interfaces is public
 		if (access == AccessSpecifier.PRIVATE && type.isClassOrInterfaceDeclaration()) {
 			return type.asClassOrInterfaceDeclaration().isInterface();
 		}
 		// Enum constants are handled separately, JavaParser doesn't consider them members
-		
 		return false; // No reason to consider member public
 	}
 	

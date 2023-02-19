@@ -12,7 +12,7 @@
     "in": ["/usr/lib/jvm/openjdk-17/src.zip"],
     "out": "java-core-types",
     "offset": "java.base",
-    "include": ["java.lang", "java.util", "java.io", "java.nio"],
+    "include": ["java.lang", "java.util", "java.io", "java.nio", "java.time"],
     "exclude": ["java.lang.Math",
       "java.lang.StrictMath",
       "java.util.concurrent",
