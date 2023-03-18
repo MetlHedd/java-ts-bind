@@ -7,6 +7,8 @@ import io.github.bensku.tsbind.ast.Method;
 import io.github.bensku.tsbind.ast.Parameter;
 import io.github.bensku.tsbind.ast.Setter;
 
+import java.util.stream.Collectors;
+
 /**
  * Code generators for different types of class members
  * and simple types needed by them.
@@ -69,7 +71,12 @@ public class TsMembers {
 		
 		// Method parameters (if any)
 		out.print("(");
-		out.print(node.params, ", ");
+		out.print(node.params.stream().map((param) -> {
+			if (param.name.equals("return")) { // Illegal name in typescript
+				param.name = "returnTo";
+			}
+			return param;
+		}).collect(Collectors.toList()), ", ");
 		out.print("): ");
 		
 		out.print(node.returnType).print(";"); // Return type
@@ -95,6 +102,10 @@ public class TsMembers {
 		if (node.isStatic) {
 			out.print("static ");
 		}
-		out.print("set %s(%s);", node.name, node.params.get(0));
+		Parameter parameter = node.params.get(0);
+		if (parameter.name.equals("return")) {
+			parameter.name = "returnTo";
+		}
+		out.print("set %s(%s);", node.name, parameter);
 	};
 }

@@ -76,7 +76,7 @@ public class AstGenerator {
 	public Optional<TypeDefinition> parseType(SourceUnit source) {
 		// FIXME don't log errors here, CLI might not be only user in future
 		// JAVAPARSER DOESNT SUPPORT sealed CLASSES! Very spaghetti solution but works
-		String code = source.code.replaceAll("sealed ", "").replaceAll("record", "class");
+		String code = source.code.replaceAll("sealed ", "").replaceAll("record", "class").replaceAll("@NonExtendable", "").replaceAll("@Internal", "");
 		ParseResult<CompilationUnit> result = parser.parse(code);
 		if (!result.isSuccessful()) {
 			//throw new IllegalArgumentException("failed to parse given source code: " + result.getProblems());
@@ -108,7 +108,11 @@ public class AstGenerator {
 		for (int i = 0; i < method.getNumberOfParams(); i++) {
 			ResolvedParameterDeclaration param = method.getParam(i);
 			TypeRef type = TypeRef.fromType(param.getType(), nullable[i]);
-			params.add(new Parameter(param.getName(), type, param.isVariadic()));
+			if (param.getName().equals("return")) {
+				params.add(new Parameter("returnTo", type, param.isVariadic()));
+			} else {
+				params.add(new Parameter(param.getName(), type, param.isVariadic()));
+			}
 		}
 		return params;
 	}
