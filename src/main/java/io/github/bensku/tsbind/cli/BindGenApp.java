@@ -37,7 +37,6 @@ public class BindGenApp {
 		// Parse command-line arguments
 		Args args = new Args();
 		JCommander.newBuilder().addObject(args).build().parse(argv);
-		
 		if (args.packageJson != null) {
 			args = new GsonBuilder()
 					.registerTypeAdapter(Path.class, new TypeAdapter<Path>() {
@@ -69,7 +68,7 @@ public class BindGenApp {
 			inputPaths = new ArrayList<>();
 			for (String artifact : args.artifacts) {
 				System.out.println("Resolving Maven artifact " + artifact);
-				MavenResolver.ArtifactResults results = resolver.downloadArtifacts(artifact, true);
+				MavenResolver.ArtifactResults results = resolver.downloadArtifacts(artifact, true, new ArrayList(), 0);
 				inputPaths.add(results.sourceJar);
 				args.symbols.addAll(results.symbols);
 			}
@@ -105,8 +104,7 @@ public class BindGenApp {
 				try {
 					// Filter here, because we need to relativize to each input directory
 					return Files.walk(t)
-							.filter(f -> isIncluded(t.relativize(f).toString().replace(File.separatorChar, '.'),
-									include, exclude));
+							.filter(f -> isIncluded(t.relativize(f).toString().replace(File.separatorChar, '.'), include, exclude));
 				} catch (IOException e) {
 					throw new RuntimeException(e); // Thanks, Java
 				}
@@ -118,7 +116,7 @@ public class BindGenApp {
 			Map<String, TypeDefinition> types = new HashMap<>();
 			files.map(path -> {
 				try {
-					return new SourceUnit(path.toString(), Files.readString(path));
+					return new SourceUnit(path.toString(), Files.readString(path).replaceAll("@NonExtendable\n", "").replaceAll("@Internal\n", "").replaceAll("@OverrideOnly\n", ""));
 				} catch (IOException e) {
 					// TODO handle this better
 					throw new RuntimeException(e);
@@ -177,7 +175,7 @@ public class BindGenApp {
 		
 		JavaSymbolSolver symbolSolver = new JavaSymbolSolver(typeSolver);
 		ParserConfiguration config = new ParserConfiguration();
-		config.setLanguageLevel(LanguageLevel.JAVA_16);
+		config.setLanguageLevel(LanguageLevel.JAVA_21);
 		JavaParser parser = new JavaParser(config);
 		parser.getParserConfiguration().setSymbolResolver(symbolSolver);
 		return parser;

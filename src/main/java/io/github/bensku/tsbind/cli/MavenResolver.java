@@ -87,6 +87,9 @@ public class MavenResolver {
 		String group = metadata.selectFirst("groupId").text();
 		String artifact = metadata.selectFirst("artifactId").text();
 		String version = metadata.selectFirst("version").text();
+		System.out.println("Found snapshot version " + repo + "/" + group.replace('.', '/')
+				+ "/" + artifact + "/" + version
+				+ "/" + artifact + "-" + snapshotVersion);
 		return repo + "/" + group.replace('.', '/')
 				+ "/" + artifact + "/" + version
 				+ "/" + artifact + "-" + snapshotVersion;
@@ -118,7 +121,7 @@ public class MavenResolver {
 			if (response.statusCode() == 200) {
 				Document doc = Jsoup.parse(response.body(), "", Parser.xmlParser());
 				Element metadata = doc.selectFirst("metadata");
-				Element version = metadata.selectFirst("versioning").selectFirst("latest");
+				Element version = metadata.selectFirst("versioning").selectFirst("release");
 				return version.text();
 			}
 		}
@@ -162,7 +165,7 @@ public class MavenResolver {
 			}
 			String versionText;
 			if (version == null) {
-				System.out.println(group.text() + ":" + artifact.text() + ": guessing version, Maven BOM is not yet supported");
+				//System.out.println(group.text() + ":" + artifact.text() + ": guessing version, Maven BOM is not yet supported");
 				versionText = getLatestVersion(group.text(), artifact.text());
 			} else {
 				versionText = version.text();
@@ -220,7 +223,7 @@ public class MavenResolver {
 	 * @throws InterruptedException
 	 * @throws IOException
 	 */
-	public ArtifactResults downloadArtifacts(String coordinates, boolean source) throws InterruptedException, IOException {
+	public ArtifactResults downloadArtifacts(String coordinates, boolean source, List<String> done, int level) throws InterruptedException, IOException {
 		String[] parts = coordinates.split(":");
 		String group = parts[0];
 		String artifact = parts[1];
@@ -254,9 +257,17 @@ public class MavenResolver {
 			throw new IOException("failed to GET " + pomUri + ": HTTP " + response.statusCode());
 		}
 		for (String dependency : getDependencies(response.body())) {
+			String[] depParts = dependency.split(":");
+			String depGroup = depParts[0];
+			String depArtifact = depParts[1];
+			if (done.contains(depGroup + ":" + depArtifact)) {
+				System.out.println(new String(new char[level * 2]).replace("\0", " ") + "Already fetched " + dependency);
+				continue;
+			}
+			done.add(depGroup + ":" + depArtifact);
 			try {
-				ArtifactResults artifacts = downloadArtifacts(dependency, false);
-				System.out.println("Fetching " + dependency);
+				ArtifactResults artifacts = downloadArtifacts(dependency, false, done, level + 1);
+				System.out.println(new String(new char[level * 2]).replace("\0", " ") + "Fetching " + dependency);
 				symbols.addAll(artifacts.symbols);
 			} catch (ArtifactNotFoundException e) {
 				// Failure to resolve a dependency is not necessarily critical

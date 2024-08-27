@@ -16,13 +16,7 @@ import com.github.javaparser.ast.AccessSpecifier;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.body.BodyDeclaration;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.EnumConstantDeclaration;
-import com.github.javaparser.ast.body.FieldDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.body.TypeDeclaration;
-import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.nodeTypes.NodeWithModifiers;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
@@ -121,7 +115,7 @@ public class AstGenerator {
 	
 	/**
 	 * Checks if a member is or uses blacklisted types.
-	 * @param member Member to check.
+	 * @param node Member to check.
 	 * @return Whether the member should be omitted.
 	 */
 	private boolean isBlacklisted(AstNode node) {
@@ -156,7 +150,7 @@ public class AstGenerator {
 			// Even private fields may need Lombok getter/setter
 			try {
 				processField(addMember, member.asFieldDeclaration(), typeKind == TypeDefinition.Kind.INTERFACE, isPublic, lombokGetter, lombokSetter);
-			} catch (UnsolvedSymbolException e) {
+			} catch (UnsolvedSymbolException | IllegalArgumentException e) {
 				// Allow symbol lookup to fail on private fields
 				if (isPublic) {
 					throw e;
@@ -263,7 +257,10 @@ public class AstGenerator {
 				processMember(typeName, type, typeKind, privateOverrides,
 						lombokGetter, lombokSetter, member, addMember);
 			} catch (UnsolvedSymbolException e) {
+				System.out.println(e.getStackTrace());
 				System.out.println("unresolved symbol " + e.getName() + " in " + typeName + "; omitting member");
+			} catch (IllegalArgumentException | UnsupportedOperationException e) {
+				System.out.println("Failed to process member in " + typeName + ": " + e.getMessage());
 			}
 		}
 		
@@ -302,7 +299,7 @@ public class AstGenerator {
 	private PublicFilterResult filterPublicTypes(List<ClassOrInterfaceType> types) {
 		PublicFilterResult result = new PublicFilterResult();
 		for (ClassOrInterfaceType type : types) {
-			ResolvedReferenceType resolved = type.resolve();
+			ResolvedReferenceType resolved = type.resolve().asReferenceType();
 			if (isPublic(resolved.getTypeDeclaration().orElse(null))) {
 				result.publicTypes.add(resolved);
 			} else {
@@ -337,13 +334,13 @@ public class AstGenerator {
 	private boolean isPublic(TypeDeclaration<?> type, BodyDeclaration<?> member) {
 		// JPMS is ignored for now, would need to parse module infos for that
 		AccessSpecifier access = (member instanceof NodeWithModifiers<?>)
-				? ((NodeWithModifiers<?>) member).getAccessSpecifier() : AccessSpecifier.PACKAGE_PRIVATE;
+				? ((NodeWithModifiers<?>) member).getAccessSpecifier() : AccessSpecifier.PRIVATE;
 		// Members specified as public are ALWAYS public
 		if (access == AccessSpecifier.PUBLIC) {
 			return true;
 		}
 		// Default ("package private") access in interfaces is public
-		if (access == AccessSpecifier.PACKAGE_PRIVATE && type.isClassOrInterfaceDeclaration()) {
+		if (access == AccessSpecifier.PRIVATE && type.isClassOrInterfaceDeclaration()) {
 			return type.asClassOrInterfaceDeclaration().isInterface();
 		}
 		// Enum constants are handled separately, JavaParser doesn't consider them members

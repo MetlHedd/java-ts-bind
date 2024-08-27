@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedTypeParameterDeclaration;
 import com.github.javaparser.resolution.types.ResolvedArrayType;
@@ -79,7 +80,11 @@ public abstract class TypeRef implements AstNode {
 				return OBJECT;
 			}
 		} else if (type.isTypeVariable()) {
-			return fromDeclaration(type.asTypeParameter());
+			try {
+				return fromDeclaration(type.asTypeParameter());
+			} catch (StackOverflowError e) {
+				throw new UnsolvedSymbolException("Stack overflow while resolving type variable " + type.asTypeParameter().getName());
+			}
 		} else {
 			throw new AssertionError("unexpected type: " + type);
 		}
