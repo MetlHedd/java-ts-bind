@@ -283,7 +283,12 @@ public class TsClass implements TsGenerator<TypeDefinition> {
 		// Needs specialized handling, because we DON'T (always) want package name here
 		out.print(name);
 		if (type instanceof TypeRef.Parametrized) {
-			out.print("<").print(((TypeRef.Parametrized) type).typeParams(), ", ").print(">");
+			List<TypeRef> ref = ((TypeRef.Parametrized) type).typeParams();
+			if (ref.get(0).name().startsWith("T")) {
+				out.print("<").print(ref.get(0).name()).print(">");
+			} else {
+				out.print("<").print(ref, ", ").print(">");
+			}
 		}
 	}
 	

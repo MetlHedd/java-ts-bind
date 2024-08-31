@@ -47,10 +47,13 @@ public class TsTypes {
 			return;
 		}
 		out.print(base);
-		if (base.name().length() > 1) {
-			// TypeScript doesn't support nested generics
-			out.print("<").print(params, ",").print(">");
+
+		// TypeScript doesn't support nested generics
+		if (BindingUtil.isGenericType(base.name())) {
+			return;
 		}
+		
+		out.print("<").print(params, ",").print(">");
 	};
 
 	public static final TsGenerator<TypeRef.Array> ARRAY = (node, out) -> {

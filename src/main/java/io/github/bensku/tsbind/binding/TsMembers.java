@@ -48,7 +48,7 @@ public class TsMembers {
 			out.print("%s: %s", name, node.type);
 		}
 	};
-	
+
 	public static final TsGenerator<Method> METHOD = (node, out) -> {
 		node.javadoc.ifPresent(out::javadoc);
 		out.indent();
@@ -61,10 +61,10 @@ public class TsMembers {
 		if (!node.typeParams.isEmpty()) {
 			out.print("<");
 			TypeRef ref = node.typeParams.get(0);
-			if (ref.name().length() > 1) {
-				out.print(ref);
-			} else {
+			if (BindingUtil.isGenericType(ref.name())) {
 				out.print(ref.name());
+			} else {
+				out.print(ref);
 			}
 			out.print(">");
 		}
