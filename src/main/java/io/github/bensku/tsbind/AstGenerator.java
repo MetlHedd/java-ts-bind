@@ -28,6 +28,8 @@ import com.github.javaparser.resolution.declarations.ResolvedParameterDeclaratio
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
+import com.github.javaparser.resolution.types.ResolvedType;
+import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserFieldDeclaration;
 
 import io.github.bensku.tsbind.ast.AstNode;
 import io.github.bensku.tsbind.ast.Constructor;
@@ -67,8 +69,9 @@ public class AstGenerator {
 	 */
 	public Optional<TypeDefinition> parseType(SourceUnit source) {
 		// FIXME don't log errors here, CLI might not be only user in future
-		
-		ParseResult<CompilationUnit> result = parser.parse(source.code);
+		// JAVAPARSER DOESNT SUPPORT sealed CLASSES! Very spaghetti solution but works
+		String code = source.code.replaceAll("sealed ", "").replaceAll("record", "class").replaceAll("@NonExtendable", "").replaceAll("@Internal", "");
+		ParseResult<CompilationUnit> result = parser.parse(code);
 		if (!result.isSuccessful()) {
 			//throw new IllegalArgumentException("failed to parse given source code: " + result.getProblems());
 			System.err.println("failed to parse " + source.name + ": " + result.getProblems());
@@ -99,7 +102,11 @@ public class AstGenerator {
 		for (int i = 0; i < method.getNumberOfParams(); i++) {
 			ResolvedParameterDeclaration param = method.getParam(i);
 			TypeRef type = TypeRef.fromType(param.getType(), nullable[i]);
-			params.add(new Parameter(param.getName(), type, param.isVariadic()));
+			if (param.getName().equals("return")) {
+				params.add(new Parameter("returnTo", type, param.isVariadic()));
+			} else {
+				params.add(new Parameter(param.getName(), type, param.isVariadic()));
+			}
 		}
 		return params;
 	}
@@ -162,7 +169,7 @@ public class AstGenerator {
 			// Work as if other non-public members did not exist
 			return; // Neither implicitly or explicitly public
 		}
-		
+
 		// Process type depending on what it is
 		if (member.isTypeDeclaration()) {
 			// Recursively process an inner type
@@ -192,7 +199,7 @@ public class AstGenerator {
 				members.add(member);
 			}
 		};
-		
+
 		// If this is an enum, generate enum constants and compiler-generated methods
 		// JavaParser doesn't consider enum constants "members"
 		if (type.isEnumDeclaration()) {
@@ -287,6 +294,7 @@ public class AstGenerator {
 		
 		// Create type definition
 		String javadoc = getJavadoc(type);
+
 		return Optional.of(new TypeDefinition(javadoc, type.isStatic(), typeRef, typeKind, isAbstract,
 				superTypes, interfaces, members));
 	}
@@ -339,12 +347,15 @@ public class AstGenerator {
 		if (access == AccessSpecifier.PUBLIC) {
 			return true;
 		}
+		// In new Javaparser versions it seems that in interfaces it can happen that the access can be NONE
+		if (access == AccessSpecifier.NONE) {
+			access = AccessSpecifier.PRIVATE;
+		}
 		// Default ("package private") access in interfaces is public
 		if (access == AccessSpecifier.PRIVATE && type.isClassOrInterfaceDeclaration()) {
 			return type.asClassOrInterfaceDeclaration().isInterface();
 		}
 		// Enum constants are handled separately, JavaParser doesn't consider them members
-		
 		return false; // No reason to consider member public
 	}
 	
@@ -435,7 +446,13 @@ public class AstGenerator {
 	}
 	
 	private void processFieldValue(Consumer<Member> addMember, FieldProps props) {
-		TypeRef type = TypeRef.fromType(props.value.getType(), props.nullable);
+		TypeRef type = null;
+		if (props.value instanceof JavaParserFieldDeclaration) {
+			JavaParserFieldDeclaration dec = (JavaParserFieldDeclaration) props.value;
+			type = TypeRef.fromType(dec.getVariableDeclarator().getType().resolve(), props.nullable);
+		} else {
+			type = TypeRef.fromType(props.value.getType(), props.nullable);
+		}
 		// Add normal field to AST
 		addMember.accept(new Field(props.value.getName(), type, props.javadoc,
 				props.isPublic, props.isStatic, props.isFinal));

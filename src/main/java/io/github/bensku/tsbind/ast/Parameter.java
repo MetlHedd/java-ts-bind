@@ -7,7 +7,7 @@ public class Parameter implements AstNode {
 	/**
 	 * Name of the parameter.
 	 */
-	public final String name;
+	public String name;
 
 	/**
 	 * Parameter type.
