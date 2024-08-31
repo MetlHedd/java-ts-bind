@@ -47,9 +47,12 @@ public class TsTypes {
 			return;
 		}
 		out.print(base);
-		out.print("<").print(params, ", ").print(">");
+		if (base.name().length() > 1) {
+			// TypeScript doesn't support nested generics
+			out.print("<").print(params, ",").print(">");
+		}
 	};
-	
+
 	public static final TsGenerator<TypeRef.Array> ARRAY = (node, out) -> {
 		out.print(node.baseType()).print("[]".repeat(node.arrayDimensions()));
 	};

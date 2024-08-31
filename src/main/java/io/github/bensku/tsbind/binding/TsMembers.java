@@ -1,11 +1,6 @@
 package io.github.bensku.tsbind.binding;
 
-import io.github.bensku.tsbind.ast.Constructor;
-import io.github.bensku.tsbind.ast.Field;
-import io.github.bensku.tsbind.ast.Getter;
-import io.github.bensku.tsbind.ast.Method;
-import io.github.bensku.tsbind.ast.Parameter;
-import io.github.bensku.tsbind.ast.Setter;
+import io.github.bensku.tsbind.ast.*;
 
 import java.util.stream.Collectors;
 
@@ -65,7 +60,12 @@ public class TsMembers {
 		// Type parameters go in different place compared to Java
 		if (!node.typeParams.isEmpty()) {
 			out.print("<");
-			out.print(node.typeParams, ", ");
+			TypeRef ref = node.typeParams.get(0);
+			if (ref.name().length() > 1) {
+				out.print(ref);
+			} else {
+				out.print(ref.name());
+			}
 			out.print(">");
 		}
 		
