@@ -30,7 +30,6 @@ jobs:
       - name: Publish core types
         run: |
           sed -i "s/VERSION/21.0.4-$(git rev-parse --short $GITHUB_SHA)/g" java-core-types/package.json
-          cd java-core-types
           npm publish --access=public ./java-core-types
         if: github.ref == 'refs/heads/master'
         env:
