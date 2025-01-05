@@ -104,7 +104,7 @@ public class BindGenApp {
 				try {
 					// Filter here, because we need to relativize to each input directory
 					return Files.walk(t)
-							.filter(f -> isIncluded(t.relativize(f).toString().replace(File.separatorChar, '.'), include, exclude));
+							.filter(f -> isIncluded(t.relativize(f).toString().replace('/', '.').replace('\\', '.'), include, exclude));
 				} catch (IOException e) {
 					throw new RuntimeException(e); // Thanks, Java
 				}
