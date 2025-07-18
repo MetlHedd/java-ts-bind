@@ -37,7 +37,7 @@ jobs:
         run: java -jar build/libs/java-ts-bind-all.jar --packageJson httpclient-types/package.json
 
       - name: Generate paper types
-        run: java -jar build/libs/java-ts-bind-all.jar --packageJson paper/package.json
+        run: java -jar build/libs/java-ts-bind-all.jar  --index --repo https://repo.papermc.io/repository/maven-public/ --artifact io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT --out paper
 
       - name: Prepare release content
         run: |
