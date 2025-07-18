@@ -1,0 +1,73 @@
+name: Java build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. 1.21.4-R0.1-SNAPSHOT)"
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "adopt"
+          java-version: "21"
+      - name: Set VERSION env
+        run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+
+      - name: Update package.json versions
+        run: |
+          for f in paper/package.json httpclient-types/package.json java-core-types/package.json; do
+            jq --arg v "$VERSION" '.version = $v | .tsbindOptions.artifact = (.tsbindOptions.artifact | map(gsub("\\$\{VERSION}"; $v)))' "$f" > tmp.json && mv tmp.json "$f"
+          done
+
+      - name: Gradle build
+        run: ./gradlew shadowJar
+
+      - name: Download JDK sources
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openjdk-21-source
+
+      - name: Generate java.base types
+        run: java -jar build/libs/java-ts-bind-all.jar --packageJson java-core-types/package.json
+      - name: Generate java.net.http types
+        run: java -jar build/libs/java-ts-bind-all.jar --packageJson httpclient-types/package.json
+      - name: Generate paper types
+        run: java -jar build/libs/java-ts-bind-all.jar --packageJson paper/package.json
+
+      - name: Prepare release content
+        run: |
+          mkdir release
+          cp -r paper release/
+          cp -r httpclient-types release/
+          cp -r java-core-types release/
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+      - name: Create or update tag with only release content
+        run: |
+          TAG_NAME="$VERSION"
+          # Remove tag locally and remotely if exists
+          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+            git tag -d "$TAG_NAME"
+            git push --delete origin "$TAG_NAME" || true
+          fi
+          # Create a worktree for the tag content
+          git worktree add release-tmp
+          rsync -a --delete release/ release-tmp/
+          cd release-tmp
+          git add .
+          git commit -m "Release $TAG_NAME" || true
+          git tag "$TAG_NAME"
+          git push origin "$TAG_NAME" --force
+          cd ..
+          git worktree remove release-tmp --force
