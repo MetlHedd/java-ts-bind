@@ -62,7 +62,7 @@ jobs:
             git push --delete origin "$TAG_NAME" || true
           fi
           # Remove everything except the release folder
-          find . -mindepth 1 -maxdepth 1 ! -name release -exec rm -rf {} +
+          find . -mindepth 1 -maxdepth 1 ! -name release ! -name .git -exec rm -rf {} +
           # Move release contents to root
           mv release/* .
           rmdir release
