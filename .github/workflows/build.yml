@@ -61,9 +61,6 @@ jobs:
             git tag -d "$TAG_NAME"
             git push --delete origin "$TAG_NAME" || true
           fi
-          # Create a worktree for the tag content
-          git worktree add release-tmp
-          cd release-tmp
           # Remove everything except the release folder
           find . -mindepth 1 -maxdepth 1 ! -name release -exec rm -rf {} +
           # Move release contents to root
@@ -74,4 +71,3 @@ jobs:
           git tag "$TAG_NAME"
           git push origin "$TAG_NAME" --force
           cd ..
-          git worktree remove release-tmp --force
