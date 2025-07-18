@@ -1,0 +1,14 @@
+{
+  "name": "@metlhedd/paper-types",
+  "version": "VERSION",
+  "description": "Paper API types",
+  "tsbindOptions": {
+    "repo": [
+      "https://repo.papermc.io/repository/maven-public/"
+    ],
+    "artifact": [
+      "io.papermc.paper:paper-api:${VERSION}"
+    ],
+    "index": true
+  }
+}
