@@ -1,5 +1,5 @@
 {
-  "name": "java-ts-bind",
+  "name": "paperts-java-ts-bind",
   "version": "1.0.0",
   "description": "TypeScript type definitions for Java bindings",
   "exports": {
