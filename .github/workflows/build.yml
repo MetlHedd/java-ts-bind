@@ -13,18 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
       - uses: actions/setup-java@v4
         with:
           distribution: "adopt"
           java-version: "21"
+
       - name: Set VERSION env
         run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
-
-      - name: Update package.json versions
-        run: |
-          for f in paper/package.json httpclient-types/package.json java-core-types/package.json; do
-            jq --arg v "$VERSION" '.version = $v | .tsbindOptions.artifact = (.tsbindOptions.artifact | map(gsub("\\$\{VERSION}"; $v)))' "$f" > tmp.json && mv tmp.json "$f"
-          done
 
       - name: Gradle build
         run: ./gradlew shadowJar
@@ -36,8 +32,10 @@ jobs:
 
       - name: Generate java.base types
         run: java -jar build/libs/java-ts-bind-all.jar --packageJson java-core-types/package.json
+
       - name: Generate java.net.http types
         run: java -jar build/libs/java-ts-bind-all.jar --packageJson httpclient-types/package.json
+        
       - name: Generate paper types
         run: java -jar build/libs/java-ts-bind-all.jar --packageJson paper/package.json
 
