@@ -3,6 +3,7 @@
   "version": "VERSION",
   "description": "Paper API types",
   "tsbindOptions": {
+    "in": [],
     "repo": [
       "https://repo.papermc.io/repository/maven-public/"
     ],
