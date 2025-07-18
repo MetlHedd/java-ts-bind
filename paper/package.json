@@ -10,6 +10,7 @@
     "artifact": [
       "io.papermc.paper:paper-api:${VERSION}"
     ],
-    "index": true
+    "index": true,
+    "out": "paper"
   }
 }
