@@ -1,4 +1,5 @@
-name: Java build
+name: "🚀 Java build"
+run-name: "🚀 Build and tag release for ${{ github.event.inputs.version }}"
 
 on:
   workflow_dispatch:
@@ -12,34 +13,36 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: "📥 Checkout repository"
+        uses: actions/checkout@v2
 
-      - uses: actions/setup-java@v4
+      - name: "☕️ Set up Java 21"
+        uses: actions/setup-java@v4
         with:
           distribution: "adopt"
           java-version: "21"
 
-      - name: Set VERSION env
+      - name: "🔖 Set VERSION env"
         run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
 
-      - name: Gradle build
+      - name: "🛠️ Gradle build"
         run: ./gradlew shadowJar
 
-      - name: Download JDK sources
+      - name: "📦 Download JDK sources"
         run: |
           sudo apt-get update
           sudo apt-get install -y openjdk-21-source
 
-      - name: Generate java.base types
+      - name: "📝 Generate java.base types"
         run: java -jar build/libs/java-ts-bind-all.jar --packageJson java-core-types/package.json
 
-      - name: Generate java.net.http types
+      - name: "📝 Generate java.net.http types"
         run: java -jar build/libs/java-ts-bind-all.jar --packageJson httpclient-types/package.json
 
-      - name: Generate paper types
+      - name: "📝 Generate paper types"
         run: java -jar build/libs/java-ts-bind-all.jar  --index --repo https://repo.papermc.io/repository/maven-public/ --artifact io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT --out paper
 
-      - name: Prepare release content
+      - name: "📦 Prepare release content"
         run: |
           mkdir -p release/paper
           mkdir -p release/httpclient-types
@@ -48,12 +51,12 @@ jobs:
           cp -r httpclient-types/* release/httpclient-types/
           cp -r java-core-types/* release/java-core-types/
 
-      - name: Configure git
+      - name: "🔧 Configure git"
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-      - name: Create or update tag with only release content
+      - name: "🏷️ Create or update tag with only release content"
         run: |
           TAG_NAME="$VERSION"
           # Remove tag locally and remotely if exists
