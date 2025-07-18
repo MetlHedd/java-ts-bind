@@ -1,0 +1,23 @@
+{
+  "name": "java-ts-bind",
+  "version": "1.0.0",
+  "description": "TypeScript type definitions for Java bindings",
+  "exports": {
+    "./httpclient-types": "./httpclient-types/index.d.ts",
+    "./java-core-types": "./java-core-types/index.d.ts",
+    "./paper": "./paper/index.d.ts"
+  },
+  "typesVersions": {
+    "*": {
+      "httpclient-types": [
+        "httpclient-types/index.d.ts"
+      ],
+      "java-core-types": [
+        "java-core-types/index.d.ts"
+      ],
+      "paper": [
+        "paper/index.d.ts"
+      ]
+    }
+  }
+}
