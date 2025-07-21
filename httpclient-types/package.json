@@ -1,13 +1,7 @@
 {
-  "name": "@craftjs-typings/java.net.http",
+  "name": "@metlhedd/java.net.http",
   "version": "VERSION",
   "description": "Java 11 HttpClient (java.net.http) types",
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/bensku/java-ts-bind.git",
-    "directory": "httpclient-types"
-  },
-  "author": "bensku",
   "tsbindOptions": {
     "in": ["/usr/lib/jvm/openjdk-21/src.zip"],
     "out": "httpclient-types",
