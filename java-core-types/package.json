@@ -1,13 +1,7 @@
 {
-  "name": "@craftjs-typings/java.base",
+  "name": "@metlhedd/java.base",
   "version": "VERSION",
   "description": "Java standard library (java.base) types",
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/bensku/java-ts-bind.git",
-    "directory": "java-core-types"
-  },
-  "author": "bensku",
   "tsbindOptions": {
     "in": ["/usr/lib/jvm/openjdk-21/src.zip"],
     "out": "java-core-types",
