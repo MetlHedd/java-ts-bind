@@ -39,10 +39,10 @@ jobs:
       - name: "📝 Generate java.net.http types"
         run: java -jar build/libs/java-ts-bind-all.jar --packageJson httpclient-types/package.json
 
-      - name: "📝 Generate paper types"
+      - name: "📝 Generate Paper types"
         run: java -jar build/libs/java-ts-bind-all.jar  --index --repo https://repo.papermc.io/repository/maven-public/ --artifact io.papermc.paper:paper-api:${{ github.event.inputs.version }} --out paper
       
-      - name: "📝 Generate paper types"
+      - name: "📝 Generate Adventure API types"
         run: java -jar build/libs/java-ts-bind-all.jar  --index --repo https://repo.papermc.io/repository/maven-public/ --artifact net.kyori:adventure-api:4.22.0 --out adventure-api
 
       - name: "📦 Prepare release content"
