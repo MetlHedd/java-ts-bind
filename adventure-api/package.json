@@ -1,0 +1,16 @@
+{
+  "name": "@metlhedd/adventure-api-types",
+  "version": "VERSION",
+  "description": "Adventure API types",
+  "tsbindOptions": {
+    "in": [],
+    "repo": [
+      "https://repo.papermc.io/repository/maven-public/"
+    ],
+    "artifact": [
+      "net.kyori:adventure-api:4.22.0"
+    ],
+    "index": true,
+    "out": "adventure-api"
+  }
+}
