@@ -41,15 +41,20 @@ jobs:
 
       - name: "📝 Generate paper types"
         run: java -jar build/libs/java-ts-bind-all.jar  --index --repo https://repo.papermc.io/repository/maven-public/ --artifact io.papermc.paper:paper-api:${{ github.event.inputs.version }} --out paper
+      
+      - name: "📝 Generate paper types"
+        run: java -jar build/libs/java-ts-bind-all.jar  --index --repo https://repo.papermc.io/repository/maven-public/ --artifact net.kyori:adventure-api:4.22.0 --out adventure-api
 
       - name: "📦 Prepare release content"
         run: |
           mkdir -p release/paper
           mkdir -p release/httpclient-types
           mkdir -p release/java-core-types
+          mkdir -p release/adventure-api
           cp -r paper/* release/paper/
           cp -r httpclient-types/* release/httpclient-types/
           cp -r java-core-types/* release/java-core-types/
+          cp -r adventure-api/* release/adventure-api/
 
       - name: "🔧 Configure git"
         run: |
